@@ -6,7 +6,12 @@ import numpy as np
 import sympy as smp
 
 app = Flask(__name__)
-CORS(app)
+# Allow the deployed frontend origin and all API routes/methods (including preflight).
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "https://pursuitofpendulums-1.onrender.com"}},
+    supports_credentials=False,
+)
 
 
 def double_pendulum_derivatives(t,state, m1,m2,L1,L2,g):
