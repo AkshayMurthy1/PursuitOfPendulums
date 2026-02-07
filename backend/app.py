@@ -216,23 +216,32 @@ def evolution_dp():
     t_max = max(0.1, min(t_max, 60.0))
     dt = max(1e-3, min(dt, 0.1))
 
-    t_span = (0,t_max)
-    t_eval = np.arange(0,t_max,dt)
-    print("INI_STATE:", ini_state)
+    try:
+        t_span = (0,t_max)
+        t_eval = np.arange(0,t_max,dt)
+        print("INI_STATE:", ini_state)
 
-    theta1_values, theta2_values,theta1_d,theta2_d = solve_ivp(dp_system,y0 = ini_state, t_span=t_span,args=params,  t_eval=t_eval).y
+        theta1_values, theta2_values,theta1_d,theta2_d = solve_ivp(
+            dp_system,
+            y0 = ini_state,
+            t_span=t_span,
+            args=params,
+            t_eval=t_eval
+        ).y
 
-    return jsonify(
-        {
-            "t": list(t_eval),
-            "theta1": list(theta1_values),
-            "theta2": list(theta2_values),
-            "theta1d":list(theta1_d),
-            "theta2d":list(theta2_d),
-            "params": list(params),
-            "meta": {"t_max": t_max, "dt": dt, "count": len(t_eval)},
-        }
-    )
+        return jsonify(
+            {
+                "t": list(t_eval),
+                "theta1": list(theta1_values),
+                "theta2": list(theta2_values),
+                "theta1d":list(theta1_d),
+                "theta2d":list(theta2_d),
+                "params": list(params),
+                "meta": {"t_max": t_max, "dt": dt, "count": len(t_eval)},
+            }
+        )
+    except Exception as exc:
+        return jsonify({"error": "Failed to compute double pendulum evolution.", "details": str(exc)}), 500
 
 @app.route("/api/evolution_tp", methods=["POST"])
 def evolution_tp():
@@ -265,25 +274,122 @@ def evolution_tp():
     t_max = max(0.1, min(t_max, 60.0))
     dt = max(1e-3, min(dt, 0.1))
 
-    t_span = (0,t_max)
-    t_eval = np.arange(0,t_max,dt)
-    print("INI_STATE:", ini_state)
+    try:
+        t_span = (0,t_max)
+        t_eval = np.arange(0,t_max,dt)
+        print("INI_STATE:", ini_state)
 
-    theta1_values, theta2_values,theta3_values,theta1_d,theta2_d,theta3_d = solve_ivp(tp_system,y0 = ini_state, t_span=t_span,args=params,  t_eval=t_eval).y
+        theta1_values, theta2_values,theta3_values,theta1_d,theta2_d,theta3_d = solve_ivp(
+            tp_system,
+            y0 = ini_state,
+            t_span=t_span,
+            args=params,
+            t_eval=t_eval
+        ).y
 
-    return jsonify(
-        {
-            "t": list(t_eval),
-            "theta1": list(theta1_values),
-            "theta2": list(theta2_values),
-            "theta3": list(theta3_values),
-            "theta1d":list(theta1_d),
-            "theta2d":list(theta2_d),
-            "theta3d":list(theta3_d),
-            "params": list(params),
-            "meta": {"t_max": t_max, "dt": dt, "count": len(t_eval)},
-        }
-    )
+        return jsonify(
+            {
+                "t": list(t_eval),
+                "theta1": list(theta1_values),
+                "theta2": list(theta2_values),
+                "theta3": list(theta3_values),
+                "theta1d":list(theta1_d),
+                "theta2d":list(theta2_d),
+                "theta3d":list(theta3_d),
+                "params": list(params),
+                "meta": {"t_max": t_max, "dt": dt, "count": len(t_eval)},
+            }
+        )
+    except Exception as exc:
+        return jsonify({"error": "Failed to compute triple pendulum evolution.", "details": str(exc)}), 500
+
+
+
+@app.route("/api/make_fractal", methods=["POST"])
+def make_vis():
+    payload = request.get_json(silent=True) or {}
+
+    defaults = {
+        "dxdt": "0",
+        "dydt": "0",
+        "d2xdt2": "0",
+        "d2ydt2": "0",
+    }
+    limits = {
+        "x1":0,
+        "y1":0,
+        "x2":1,
+        "y2":1,
+        "res":100,
+        "t":10
+    }
+
+    # Use named parsing so res/t map correctly and avoid positional errors.
+    try:
+        x1 = float(payload.get("x1", limits["x1"]))
+        y1 = float(payload.get("y1", limits["y1"]))
+        x2 = float(payload.get("x2", limits["x2"]))
+        y2 = float(payload.get("y2", limits["y2"]))
+        res = int(payload.get("res", limits["res"]))
+        t_max = float(payload.get("t", limits["t"]))
+    except Exception as exc:
+        return jsonify({"error": "Invalid numeric input.", "details": str(exc)}), 400
+
+    # Safety caps to prevent runaway CPU/memory usage.
+    res = max(10, min(res, 300))
+    t_max = max(0.1, min(t_max, 60.0))
+
+    params = [str(payload.get(k, defaults[k])) for k in defaults]
+
+    try:
+        x_sym, y_sym, dxdt_sym, dydt_sym, t_sym = smp.symbols("x y dxdt dydt t")
+        exprs = [
+            smp.sympify(expr, locals={"x": x_sym, "y": y_sym, "dxdt": dxdt_sym, "dydt": dydt_sym, "t": t_sym})
+            for expr in params
+        ]
+        dxdt_f, dydt_f, d2xdt_f, d2ydt_f = [
+            smp.lambdify((t_sym, x_sym, y_sym, dxdt_sym, dydt_sym), expr, modules="numpy") for expr in exprs
+        ]
+    except Exception as exc:
+        return jsonify({"error": "Failed to parse expressions.", "details": str(exc)}), 400
+
+    def func(t, state):
+        x, y, dxdt, dydt = state
+        return [
+            dxdt_f(t, x, y, dxdt, dydt),
+            dydt_f(t, x, y, dxdt, dydt),
+            d2xdt_f(t, x, y, dxdt, dydt),
+            d2ydt_f(t, x, y, dxdt, dydt),
+        ]
+    
+    # Return a real 2D list for JSON serialization.
+    try:
+        grid = return_2d_chaos(func, x2, y2, x1, y1, N=res, T=t_max)
+    except Exception as exc:
+        return jsonify({"error": "Failed to generate fractal grid.", "details": str(exc)}), 500
+    
+    return jsonify({"grid": grid.tolist()})
+
+def return_2d_chaos(func, x2,y2,x1=0,y1=0,N=50,T=10,ep=1e-3,dxdt=0,dydt=0,dt=.1):
+    X = np.linspace(x1,x2,num=N)
+    Y = np.linspace(y1,y2,num=N)
+    #print(Y)
+    grid = np.zeros((N,N))
+    t_eval = np.arange(start=0,stop=T,step=dt)
+    for i in range(len(X)):
+        print(i)
+        for j in range(len(Y)):
+            x = X[i]
+            y = Y[j]
+            try:
+                sol1 = solve_ivp(func,t_span=(0,T),y0=[x,y,dxdt,dydt],t_eval=t_eval)
+                sol2 = solve_ivp(func,t_span=(0,T),y0=[x+ep,y+ep,dxdt,dydt],t_eval=t_eval)
+                # Use distance between trajectories to keep a scalar per cell.
+                val = np.linalg.norm((sol1.y[0],sol2.y[0]))
+            except Exception:
+                val = 0
+            grid[i][j] = val
+    return grid
 
 if __name__ == "__main__":
     # For local development. In production, run with a WSGI server.

@@ -1,19 +1,134 @@
 import { useEffect, useRef, useState } from "react";
 import fractalA from "../imgs/dp_solo.png";
-import fractalD from "../imgs/!DoublePendulumFractal.jpg"
+import fractalD from "../imgs/!DoublePendulumFractal.jpg";
 import fractalB from "../imgs/triple_pendulum_fractal_2_cropped.png";
 import fractalC from "../imgs/triple_pendulum_fractal_3_cropped.png";
+import fractalE1 from "../imgs/eq5_cropped.png";
+import fractalE2 from "../imgs/eq5_2pi2pi.png";
+import fractalE3 from "../imgs/eq5_4pi4pi.png";
+import fractalE4 from "../imgs/eq5_16pi16pi.png";
+import fractalF1 from "../imgs/200x200eq5b.png";
+import fractalF2 from "../imgs/200x200eq5bWOW.png";
+import fractalF3 from "../imgs/200x200eq5b_4pi.png";
+import fractalF4 from "../imgs/200x200eq5b_16pi.png";
+
+//TODO implement all these fractal images into the gallery by appending them to the galleryPieces array. they are from the lorenz attractor, chua DEs, rossler system, and duffing system. please put their equations in the author. 
+import LorenzFracA from "../imgs/200x200_lorenz_15_square_z=2.png"
+import LorenzFracB from "../imgs/200x200_lorenz_30_square_z=2.png"
+import ChuaFracA from "../imgs/240x240_blur_chua.png"
+import ChuaFracB from "../imgs/240x240_blur_chua3030.png"
+import RossFrac from "../imgs/240x240_rossler_30_z=10.png"
+import DuffFrac from "../imgs/240x240_blur_duff_sigma=.2.png"
+
+
+
+
 import Gallery from "./Gallery.jsx";
 import Animations from "./Animations.jsx";
 import Fractals from "./Fractals.jsx";
 
 const sections = [
-  { key: "gallery", label: "Gallery", blurb: "Physics-Inspired Visualizations" },
+  { key: "gallery", label: "Gallery", blurb: "Physics and Math Visualizations" },
   { key: "animations", label: "Animations", blurb: "Interactive physics-driven sound lab" },
-  { key: "fractals", label: "Fractal Lab", blurb: "In-progress generative explorations" },
+  { key: "fractals", label: "Fractal Lab", blurb: "Create your own art!" },
 ];
 
 const galleryPieces = [
+  {
+    title: "Lovely Lorenz Pt. 1",
+    image: LorenzFracA,
+    text: "Artist: $\\frac{dx}{dt} = \\sigma (y-x), \\frac{dy}{dt} = x(\\rho - z) - y, \\frac{dz}{dt} = xy - \\beta z$",
+    details: "A chaos visualization of the Lorenz Attractor using Lyapunov Exponents! Used $\\sigma = 10,\\rho=28,\\beta = 8/3$. Plotted $x \\in (-15,15), y\\in (-15,15)$, and $z_0=15$ was used for the initial condition of $z$."
+  },
+  {
+    title: "Lovely Lorenz Pt. 2",
+    image: LorenzFracB,
+    text: "Artist: $\\frac{dx}{dt} = \\sigma (y-x), \\frac{dy}{dt} = x(\\rho - z) - y, \\frac{dz}{dt} = xy - \\beta z$",
+    details: "Same Lorenz system except zoomed out!. Plotted $x \\in (-30,30), y\\in (-30,30)$."
+  },
+  {
+    title: "Chua Catastrophe Pt. 1",
+    image: ChuaFracA,
+    text: "Artist: $\\frac{dx}{dt} = \\alpha (y - x - f(x)), \\frac{dy}{dt} = x - y + z, \\frac{dz}{dt} = -\\beta y,\\ f(x)=m_1 x + \\tfrac{1}{2}(m_0 - m_1)(|x+1|-|x-1|)$",
+    details: "Lyapunov Exponent chaos visualization (with a bit of blur) of the Chua circuit. Used $\\alpha=15.6,\\beta=28, f(x) = m_1x+\\frac{1}{2}(m_0-m_1)(|x+1|-|x-1|), m_0 = -1.143, m_1 = -0.714$. Plotted $x \\in (-15,15), y\\in (-15,15)$"
+  },
+  {
+    title: "Chua Catastrophe Pt. 2",
+    image: ChuaFracB,
+    text: "Artist: $\\frac{dx}{dt} = \\alpha (y - x - f(x)), \\frac{dy}{dt} = x - y + z, \\frac{dz}{dt} = -\\beta y,\\ f(x)=m_1 x + \\tfrac{1}{2}(m_0 - m_1)(|x+1|-|x-1|)$",
+    details: "Alternate view of the same Chua dynamics on a larger grid! Plotted $x \\in (-30,30), y\\in (-30,30)$"
+  },
+  {
+    title: "Rössler-Branded Taffy",
+    image: RossFrac,
+    text: "Artist: $\\frac{dx}{dt} = -y - z, \\frac{dy}{dt} = x + a y, \\frac{dz}{dt} = b + z(x - c)$",
+    details: "Rössler system chaos intensity across initial conditions.Used $a=-.2,b=0.2,c=5.7,z_0=10$. Plotted $x \\in (-30,30), y\\in (-30,30)$"
+  },
+  {
+    title: "Duffing Explosion",
+    image: DuffFrac,
+    text: "Artist: $\\frac{d^2x}{dt^2} + \\delta \\frac{dx}{dt} - x + x^3 = \\gamma \\cos(\\omega t)$",
+    details: "Forced Duffing oscillator chaos visualization. Used $\\delta =0.2,\\gamma=0.2,\\omega=1.2$. Plotted $x \\in (-30,30), y\\in (-30,30)$!"
+  },
+
+
+  { 
+    title: "Second-Order Emblem Pt. 1",
+    image: fractalF1,
+    text: "Artist: $\\frac{d^2x}{dt^2} = \\text{sin}(x) - \\text{cos}(y), \\frac{d^2y}{dt^2} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "This is an intensity visualization of the above Ordinary Differential Equation (ODE), stretching from $x \\in (0,1)$ and $y \\in (0,1)$. I used the same intensity quantification method as in 'Symmetrically Asymmetric Chaos'"
+
+  },
+  { 
+    title: "Second-Order Emblem Pt. 3",
+    image: fractalF2,
+    text: "Artist: $\\frac{d^2x}{dt^2} = \\text{sin}(x) - \\text{cos}(y), \\frac{d^2y}{dt^2} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "Let's scale back to $x \\in (0,2\\pi)$ and $y \\in (0,2\\pi)$!"
+
+  },
+  { 
+    title: "Second-Order Emblem Pt. 3",
+    image: fractalF3,
+    text: "Artist: $\\frac{d^2x}{dt^2} = \\text{sin}(x) - \\text{cos}(y), \\frac{d^2y}{dt^2} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "Same intensity visualization, but zoomed out now from $x \\in (0,4\\pi)$ and $y \\in (0,4\\pi)$!"
+
+  },
+  { 
+    title: "Second-Order Emblem Pt. 4",
+    image: fractalF4,
+    text: "Artist: $\\frac{d^2x}{dt^2} = \\text{sin}(x) - \\text{cos}(y), \\frac{d^2y}{dt^2} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "This is an intensity visualization of the above Ordinary Differential Equation (ODE), stretching from $x \\in (0,16\\pi)$ and $y \\in (0,16\\pi)$"
+
+  },  
+
+  { 
+    title: "Symmetrically Asymmetric Chaos Pt. 1",
+    image: fractalE1,
+    text: "Artist: $\\frac{dx}{dt} = \\text{sin}(x) - \\text{cos}(y), \\frac{dy}{dt} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "This is an intensity visualization of the above Ordinary Differential Equation (ODE), stretching from $x \\in (0,1)$ and $y \\in (0,1)$. It basically sums up a quantity for chaos and intensity (how large does the system get), at each initial starting point $x_0,y_0$ in the grid.$"
+
+  },
+  { 
+    title: "Symmetrically Asymmetric Chaos Pt. 2",
+    image: fractalE2,
+    text: "Artist: $\\frac{dx}{dt} = \\text{sin}(x) - \\text{cos}(y), \\frac{dy}{dt} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "This is a more zoomed out intensity visualization that stretches from $x \\in (0,2\\pi)$ and $y \\in (0,2\\pi)$"
+
+  },
+  { 
+    title: "Symmetrically Asymmetric Chaos Pt. 3",
+    image: fractalE3,
+    text: "Artist: $\\frac{dx}{dt} = \\text{sin}(x) - \\text{cos}(y), \\frac{dy}{dt} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "This is a more zoomed out intensity visualization that stretches from $x \\in (0,4\\pi)$ and $y \\in (0,4\\pi)$"
+
+  },
+  { 
+    title: "Symmetrically Asymmetric Chaos Pt. 4",
+    image: fractalE4,
+    text: "Artist: $\\frac{dx}{dt} = \\text{sin}(x) - \\text{cos}(y), \\frac{dy}{dt} = \\text{sin}(y) - \\text{cos}(x)$",
+    details: "Zoom out to $x \\in (0,16\\pi)$ and $y \\in (0,16\\pi)$, and you get this!"
+
+  },
   {
     title: "Balance of Chaos",
     image: fractalA,
@@ -38,7 +153,9 @@ const galleryPieces = [
     text: "Artist: Double Pendulum",
     details: "I varied the domain of the Balance of Chaos to $[-\\pi,\\pi]$, and used different color representations as well as blurs to combine many visualizations to create this piece."
 
-  }
+  },
+
+    
 ];
 
 const defaults = [
@@ -773,24 +890,6 @@ export default function App() {
                 Enter the gallery
               </a>
             </div>
-          </div>
-          <div className="hero-card">
-            <div className="hero-card-title">Live Physics Console</div>
-            <div className="hero-card-body">
-              <div className="hero-card-metric">
-                <span>Active system</span>
-                <strong>{systems.find((s) => s.key === activeTab)?.name ?? systems[0].name}</strong>
-              </div>
-              <div className="hero-card-metric">
-                <span>Audio</span>
-                <strong>{audioReady ? "Armed" : "Tap to unlock"}</strong>
-              </div>
-              <div className="hero-card-metric">
-                <span>Backend</span>
-                <strong>{isFetching ? "Fetching" : evolutionData ? "Live" : "Idle"}</strong>
-              </div>
-            </div>
-            <p className="hero-note">Built with React + Vite, driven by backend Python</p>
           </div>
         </header>
 

@@ -261,7 +261,7 @@ export default function Animations({
                   </div>
                 )}
                 {!fetchError && !isSystemLive && !isFetching && (
-                  <div className="hint">Tap "Simulate Double" to view the beauty of physics.</div>
+                  <div className="hint">Tap "Simulate Double" to sense the beauty of physics.</div>
                 )}
               </div>
             )}
