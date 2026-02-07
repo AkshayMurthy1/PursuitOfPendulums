@@ -398,4 +398,7 @@ def return_2d_chaos(func, x2,y2,x1=0,y1=0,N=50,T=10,ep=1e-3,dxdt=0,dydt=0,dt=.1)
 
 if __name__ == "__main__":
     # For local development. In production, run with a WSGI server.
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    import os
+
+    port = int(os.environ.get("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port, debug=False)
